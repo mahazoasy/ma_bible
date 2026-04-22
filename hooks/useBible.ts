@@ -3,7 +3,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import bibleFr from '../assets/bible_fr.json';
 import bibleMg from '../assets/bible_mg.json';
 
-// Type identique à avant
 interface BibleBook {
   nom: string;
   abrev: string;
@@ -11,16 +10,27 @@ interface BibleBook {
   chapitres: { numero: number; versets: { numero: number; texte: string }[] }[];
 }
 
+// Déclarer le type attendu pour les fichiers JSON
+interface BibleData {
+  livres: BibleBook[];
+}
+
 export function useBible() {
   const { language } = useLanguage();
   const [books, setBooks] = useState<BibleBook[]>([]);
 
   useEffect(() => {
-    const bibleData = language === 'fr' ? bibleFr : bibleMg;
-    setBooks(bibleData.livres);
+    // Forcer le typage avec "as BibleData"
+    const bibleData = (language === 'fr' ? bibleFr : bibleMg) as BibleData;
+    if (bibleData && Array.isArray(bibleData.livres)) {
+      setBooks(bibleData.livres);
+    } else {
+      console.error('Structure invalide pour la Bible', bibleData);
+      setBooks([]);
+    }
   }, [language]);
 
-  // Les fonctions restent identiques
+  // Le reste des fonctions est identique
   const getChapter = (bookName: string, chapterNum: number) => {
     const book = books.find(b => b.nom === bookName);
     return book?.chapitres.find(c => c.numero === chapterNum);

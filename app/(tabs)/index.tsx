@@ -1,14 +1,13 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFavorites } from '../../hooks/useFavorites';
-import { useBible } from '../../hooks/useBible';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LAST_POSITION_KEY } from '../../utils/storage';
 
 export default function HomeScreen() {
-  const { t, language, setLanguage } = useLanguage(); 
+  const { t, language, setLanguage } = useLanguage();
   const router = useRouter();
   const { favorites } = useFavorites();
   const [lastPosition, setLastPosition] = useState<{ book: string; chapter: number } | null>(null);
@@ -19,7 +18,11 @@ export default function HomeScreen() {
 
   const loadLastPosition = async () => {
     const pos = await AsyncStorage.getItem(LAST_POSITION_KEY);
-    if (pos) setLastPosition(JSON.parse(pos));
+    if (pos) {
+      try {
+        setLastPosition(JSON.parse(pos));
+      } catch (e) {}
+    }
   };
 
   return (
@@ -54,22 +57,18 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Sélecteur de langue */}
-      <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 16 }}>
+      <View style={styles.langRow}>
         <TouchableOpacity
+          style={[styles.langButton, language === 'fr' && styles.langActive]}
           onPress={() => setLanguage('fr')}
-          style={[
-            styles.langButton,
-            { backgroundColor: language === 'fr' ? '#6b4c3b' : '#ddd', marginRight: 8 }
-          ]}
         >
-          <Text style={{ color: language === 'fr' ? '#fff' : '#000' }}>Français</Text>
+          <Text style={styles.langText}>Français</Text>
         </TouchableOpacity>
         <TouchableOpacity
+          style={[styles.langButton, language === 'mg' && styles.langActive]}
           onPress={() => setLanguage('mg')}
-          style={[styles.langButton, { backgroundColor: language === 'mg' ? '#6b4c3b' : '#ddd' }]}
         >
-          <Text style={{ color: language === 'mg' ? '#fff' : '#000' }}>Malagasy</Text>
+          <Text style={styles.langText}>Malagasy</Text>
         </TouchableOpacity>
       </View>
 
@@ -94,7 +93,10 @@ const styles = StyleSheet.create({
   statBox: { alignItems: 'center', backgroundColor: '#fff', padding: 12, borderRadius: 12, width: '40%' },
   statNumber: { fontSize: 28, fontWeight: 'bold', color: '#6b4c3b' },
   statLabel: { fontSize: 14, color: '#7a5a48' },
+  langRow: { flexDirection: 'row', justifyContent: 'center', marginVertical: 16, gap: 12 },
+  langButton: { padding: 8, borderRadius: 8, width: 100, alignItems: 'center', backgroundColor: '#ddd' },
+  langActive: { backgroundColor: '#6b4c3b' },
+  langText: { color: '#fff', fontWeight: '500' },
   quickButton: { backgroundColor: '#6b4c3b', padding: 14, borderRadius: 30, alignItems: 'center' },
   quickButtonText: { color: '#fff', fontSize: 16, fontWeight: '500' },
-  langButton: { padding: 8, borderRadius: 8, width: 100, alignItems: 'center' },
 });
